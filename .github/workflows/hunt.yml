@@ -2,9 +2,9 @@ name: Oracle ARM Hunter
 
 on:
   schedule:
-    # Runs every 30 minutes 24/7 in GitHub Cloud
-    - cron: '*/30 * * * *'
-  workflow_dispatch: # Allows clicking "Run workflow" manually anytime
+    # Backup trigger every 15 minutes to guarantee 24/7 uptime
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Allows manual run and automatic instant chain-triggering
 
 jobs:
   hunt:
@@ -28,13 +28,27 @@ jobs:
           mkdir -p ~/.oci
           echo "${{ secrets.OCI_CONFIG }}" > ~/.oci/config
           echo "${{ secrets.OCI_KEY_FILE }}" > ~/.oci/oci_api_key.pem
-          # Automatically fix key_file path to match GitHub Actions runner environment
+          # Ensure correct key_file path on GitHub Actions runner
           sed -i "s|key_file=.*|key_file=$HOME/.oci/oci_api_key.pem|g" ~/.oci/config
           chmod 600 ~/.oci/oci_api_key.pem
           chmod 600 ~/.oci/config
 
       - name: Run Oracle ARM Hunter Bot
+        id: bot
         env:
           MAX_RUN_MINUTES: 25
           RETRY_INTERVAL_MS: 60000
         run: node run_bot.js
+
+      - name: Chain Next Continuous Run
+        if: steps.bot.outputs.should_retrigger == 'true'
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          echo "🔄 Instantly triggering next 25-minute hunting cycle..."
+          curl -s -X POST \
+            -H "Authorization: token $GH_PAT" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/hunt.yml/dispatches \
+            -d '{"ref":"main"}'
+          echo "✅ Continuous cycle triggered!"

@@ -90,7 +90,12 @@ async function run() {
     if (MAX_RUN_MINUTES > 0) {
       const elapsedMinutes = (Date.now() - startTime) / (60 * 1000);
       if (elapsedMinutes >= MAX_RUN_MINUTES) {
-        log(`⏰ Job reached ${MAX_RUN_MINUTES} minutes limit. Exiting cleanly for next scheduled trigger.`);
+        log(`⏰ Job reached ${MAX_RUN_MINUTES} minutes limit. Signaling chain trigger for next continuous run...`);
+        if (process.env.GITHUB_OUTPUT) {
+          try {
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, 'should_retrigger=true\n');
+          } catch (e) {}
+        }
         process.exit(0);
       }
     }
