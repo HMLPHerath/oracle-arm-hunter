@@ -2,9 +2,14 @@ name: Oracle ARM Hunter
 
 on:
   schedule:
-    # Backup trigger every 15 minutes to guarantee 24/7 uptime
-    - cron: '*/15 * * * *'
+    # Hourly safety net in case the chain ever breaks
+    - cron: '0 * * * *'
   workflow_dispatch: # Allows manual run and automatic instant chain-triggering
+
+# Enforce strictly 1 run at any time (cancels any older/duplicate run automatically)
+concurrency:
+  group: oracle-arm-hunter-singleton
+  cancel-in-progress: true
 
 jobs:
   hunt:
