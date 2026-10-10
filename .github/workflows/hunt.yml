@@ -28,6 +28,8 @@ jobs:
           mkdir -p ~/.oci
           echo "${{ secrets.OCI_CONFIG }}" > ~/.oci/config
           echo "${{ secrets.OCI_KEY_FILE }}" > ~/.oci/oci_api_key.pem
+          # Automatically fix key_file path to match GitHub Actions runner environment
+          sed -i "s|key_file=.*|key_file=$HOME/.oci/oci_api_key.pem|g" ~/.oci/config
           chmod 600 ~/.oci/oci_api_key.pem
           chmod 600 ~/.oci/config
 
