@@ -1,0 +1,4 @@
+node_modules/
+*.log
+SUCCESS_INSTANCE_CREATED.txt
+.oci/

@@ -1,0 +1,38 @@
+name: Oracle ARM Hunter
+
+on:
+  schedule:
+    # Runs every 30 minutes 24/7 in GitHub Cloud
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # Allows clicking "Run workflow" manually anytime
+
+jobs:
+  hunt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Configure OCI Credentials
+        run: |
+          mkdir -p ~/.oci
+          echo "${{ secrets.OCI_CONFIG }}" > ~/.oci/config
+          echo "${{ secrets.OCI_KEY_FILE }}" > ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/config
+
+      - name: Run Oracle ARM Hunter Bot
+        env:
+          MAX_RUN_MINUTES: 25
+          RETRY_INTERVAL_MS: 60000
+        run: node run_bot.js
