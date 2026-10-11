@@ -6,10 +6,10 @@ on:
     - cron: '0 * * * *'
   workflow_dispatch: # Allows manual run and automatic instant chain-triggering
 
-# Enforce strictly 1 run at any time (cancels any older/duplicate run automatically)
+# Strictly 1 run at a time; queue the next cycle without cancelling the current run
 concurrency:
   group: oracle-arm-hunter-singleton
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   hunt:
